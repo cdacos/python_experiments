@@ -21,6 +21,7 @@ class Well:
         self.target = 0 # The target square "M"
         self.neighbours = []
         self.visited = set()
+        self.time = 0
         self.parse_input(args)
 
     def parse_input(self, args):
@@ -53,11 +54,9 @@ class Well:
     def fill(self, square = 0, min_square = 0, last_square = 0):
         self.visited.add(square)
 
-        if self.squares[square] > self.squares[last_square]:
-            return min_square # Square too high, barrier
-
         for n in self.neighbours[square]:
-            if n not in self.visited:
+            # Can't walk squares higher than this square is
+            if self.squares[n] <= self.squares[square] and n not in self.visited :
                 min_square = self.fill(n, min_square, square)
 
         return square if self.squares[square] < self.squares[min_square] else min_square
@@ -66,15 +65,16 @@ class Well:
         self.neighbours = self.get_neighbours(self.cols, self.rows)
         self.debug = False
         target_level = self.squares[self.target] + 1
-        for i in range(1, 9999): # Avoid infinite loops
+        for self.time in range(1, 9999): # Avoid infinite loops
             self.visited = set()
             square = self.fill()
             if self.squares[square] + 1 > target_level and self.squares[self.target] >= target_level:
-                return i - 1 # Reached the target level on the last iteration
+                self.time -= 1 # Reached the target level on the last iteration
+                return self.time
             self.squares[square] = self.squares[square] + 1
         raise Exception('Iteration limit exceeded')
 
-well1 = Well("""
+well_1 = Well("""
 3 3
 1 9 6
 2 8 5
@@ -82,7 +82,7 @@ well1 = Well("""
 4
 """) # 16
 
-well2 = Well("""
+well_2 = Well("""
 7 7
   38  33  11  48  19  45  22
   47  30  24  15  46  28   3
@@ -92,9 +92,9 @@ well2 = Well("""
   43  29   4  41  26  31  37
   25   6  23  44   7  42  40
 35
-""") # 630
+""") # 589 
 
-well3 = Well("""
+well_3 = Well("""
 7 7
   15  16  46   1  38  43  44
   25  10   7   6  34  42  14
@@ -104,23 +104,24 @@ well3 = Well("""
   40  41  20  26  39  48   2
   49  35  27   4  37  30  17
 26
-""") # 351
+""") # 316
 
-print('Well 1 = {}'.format(well1.solve()))
-print('Well 2 = {}'.format(well2.solve()))
-print('Well 3 = {}'.format(well3.solve()))
+print('Well 1 = {}'.format(well_1.solve()))
+print('Well 2 = {}'.format(well_2.solve()))
+print('Well 3 = {}'.format(well_3.solve()))
 
 # ----------------------------------------------------------------------------
 
 def print_squares(well):
-    print('\nTarget: {} (position: {})'.format(well.squares[well.target], well.target))
+    print('')
     for r in range(0, well.rows):
         row = []
         for c in range(0, well.cols):
             i = r * well.cols + c
             row.append('{}{}  '.format(well.squares[i], '!' if i == well.target else '')[0:3])
         print(' '.join(row))
+    print('Fill iterations: {}\n'.format(well.time))
 
-print_squares(well1)
-print_squares(well2)
-print_squares(well3)
+print_squares(well_1)
+print_squares(well_2)
+print_squares(well_3)
