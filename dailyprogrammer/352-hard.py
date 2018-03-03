@@ -19,59 +19,52 @@ class Well:
         self.rows = 0
         self.squares = []
         self.target = 0 # The target square "M"
-        self.neighbours = []
         self.visited = set()
         self.time = 0
         self.parse_input(args)
+        # Calculate this initially to avoid repetition:
+        self.neighbours = self.get_neighbours(self.cols, self.rows)
 
     def parse_input(self, args):
-        for i, line in enumerate(args.strip().splitlines()):
-            line = line.strip()
-            if not line == '':
-                if i == 0:
-                    (self.cols , self.rows) = [int(x) for x in line.split(' ')]
-                elif i <= self.rows:
-                    self.squares.extend([int(x) for x in re.split('[ ]+', line)])
-                else:
-                    self.target = self.squares.index(int(line))
+        """You'll be given a row with two numbers, N and N, telling you the dimensions of the well. Then you'll be given N rows of N colums of unique numbers. Then you'll get one row with one number, M, telling you the target square to cover with one cubic unit of water.
+        """
+        self.squares = [int(v) for v in re.split('[ \n\r]+', args.strip())]
+        (self.cols, self.rows, self.target) = (self.squares.pop(0), self.squares.pop(0), self.squares.index(self.squares.pop()))
 
     def get_neighbours(self, cols, rows):
-        neighbours = [] # Cardinal points: N/E/S/W
+        """Assuming realistic model, water can only flow through sides of squares, not diagonals.
+        """
+        neighbours = []
+        cardinals = [(-1, 0), (0, -1), (1, 0), (0, 1)] # N/W/S/E
         for i in range(0, cols*rows):
-            (row, col) = ((int)(i / rows), i % cols)
-            n = set()
-            if row > 0:
-                n.add((row - 1) * cols + col)
-            if row < rows - 1:
-                n.add((row + 1) * cols + col)
-            if col > 0:
-                n.add(row * cols + col - 1)
-            if col < cols - 1:
-                n.add(row * cols + col + 1)
-            neighbours.append(n)
+            (r, c) = (int(i / rows), i % cols)
+            coords = [(p[0] + r, p[1] + c) for p in cardinals] # Some might be out of bounds, so filter:
+            neighbours.append([n[0] * cols + n[1] for n in coords if 0 <= n[0] < rows and 0 <= n[1] < cols])
         return neighbours
 
-    def fill(self, square = 0, min_square = 0, last_square = 0):
+    def fill(self, square = 0, min_square = 0):
+        """Check neighbours that are not higher than the current square. Return deepest square reached.
+        """
         self.visited.add(square)
 
         for n in self.neighbours[square]:
-            # Can't walk squares higher than this square is
-            if self.squares[n] <= self.squares[square] and n not in self.visited :
-                min_square = self.fill(n, min_square, square)
+            if self.squares[n] <= self.squares[square] and n not in self.visited:
+                min_square = self.fill(n, min_square)
 
         return square if self.squares[square] < self.squares[min_square] else min_square
 
     def solve(self):
-        self.neighbours = self.get_neighbours(self.cols, self.rows)
-        self.debug = False
+        """Keep adding one unit of water until the target square is incremented and there are no other squares to fill at that depth. In real life the squares will fill proportionally, but our model matches reality at this point.
+        """
         target_level = self.squares[self.target] + 1
-        for self.time in range(1, 9999): # Avoid infinite loops
+
+        for self.time in range(0, 999_999): # Avoid infinite loops
             self.visited = set()
             square = self.fill()
             if self.squares[square] + 1 > target_level and self.squares[self.target] >= target_level:
-                self.time -= 1 # Reached the target level on the last iteration
-                return self.time
+                return self.time # Done!
             self.squares[square] = self.squares[square] + 1
+
         raise Exception('Iteration limit exceeded')
 
 well_1 = Well("""
@@ -107,12 +100,17 @@ well_3 = Well("""
 """) # 316
 
 print('Well 1 = {}'.format(well_1.solve()))
+assert(well_1.time == 16)
 print('Well 2 = {}'.format(well_2.solve()))
+assert(well_2.time == 589)
 print('Well 3 = {}'.format(well_3.solve()))
+assert(well_3.time == 316)
 
 # ----------------------------------------------------------------------------
 
 def print_squares(well):
+    """Pretty print a well.
+    """
     print('')
     for r in range(0, well.rows):
         row = []
@@ -122,6 +120,6 @@ def print_squares(well):
         print(' '.join(row))
     print('Fill iterations: {}\n'.format(well.time))
 
-print_squares(well_1)
-print_squares(well_2)
-print_squares(well_3)
+# print_squares(well_1)
+# print_squares(well_2)
+# print_squares(well_3)
