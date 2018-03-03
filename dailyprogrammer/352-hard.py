@@ -31,7 +31,7 @@ class Well:
         self.target = 0 # The target square "M"
         self.time = 0
         self.parse_input(args)
-        # Calculate this initially to avoid repetition:
+        # Calculate this initially to avoid repetitive work:
         self.neighbours = self.get_neighbours(self.cols, self.rows)
 
     def parse_input(self, args):
@@ -57,7 +57,6 @@ class Well:
 
     def fill(self, square, min_square, visited):
         """Check neighbours that are not higher than the current square. 
-        
         Return deepest square reached.
         """
         visited.add(square)
@@ -73,6 +72,7 @@ class Well:
         is incremented and there are no other squares to fill at that depth.
         In real life the squares will fill proportionally, but our model
         matches it at this iteration point.
+        Return number of iterations ('time').
         """
         target_level = self.squares[self.target] + 1
 
@@ -80,7 +80,7 @@ class Well:
             square = self.fill(0, 0, set())
             if self.squares[square] + 1 > target_level and self.squares[self.target] >= target_level:
                 return self.time # Done!
-            self.squares[square] = self.squares[square] + 1
+            self.squares[square] += 1
 
         raise Exception('Iteration limit exceeded')
 
