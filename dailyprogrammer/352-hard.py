@@ -3,15 +3,25 @@
 import re
 
 class Well:
-    """See https://www.reddit.com/r/dailyprogrammer/comments/7zriir/20180223_challenge_352_hard_well_well_well/
+    """See https://www.reddit.com/r/dailyprogrammer/
 
-    A square well is dug with a peculiar shape: each 1x1 section has varying heights above some floor. You wish to fill the well with water, filling from a hose above the square marked 1. Square 1 is the lowest (think of this as a heightmap in units from the bottom). Water flows at 1 cubic unit per unit time (e.g. 1 liter per minute if you want specific units). You wish to know when you fill a specific square.
+    [2018-02-23] Challenge #352 [Hard] Well, Well, Well
 
-    You can assume water behaves like it does in the real world - it immediately disperses, evenly, to all accessible regions, and it cannot spontaneously leak from one square to another if there is no path.
+    A square well is dug with a peculiar shape: each 1x1 section has varying
+    heights above some floor. You wish to fill the well with water, filling
+    from a hose above the square marked 1. Square 1 is the lowest (think of 
+    this as a heightmap in units from the bottom). Water flows at 1 cubic 
+    unit per unit time (e.g. 1 liter per minute if you want specific units).
+    You wish to know when you fill a specific square.
+
+    You can assume water behaves like it does in the real world - it 
+    immediately disperses, evenly, to all accessible regions, and it cannot
+    spontaneously leak from one square to another if there is no path.
     
     Assume a constant flow rate for the water.
     
-    Today's question is - writing a program, can you tell at what time the well's target square is under a cubic unit of water? 
+    Today's question is - writing a program, can you tell at what time the
+    well's target square is under a cubic unit of water? 
     """
 
     def __init__(self, args):
@@ -25,13 +35,17 @@ class Well:
         self.neighbours = self.get_neighbours(self.cols, self.rows)
 
     def parse_input(self, args):
-        """You'll be given a row with two numbers, N and N, telling you the dimensions of the well. Then you'll be given N rows of N colums of unique numbers. Then you'll get one row with one number, M, telling you the target square to cover with one cubic unit of water.
+        """You'll be given a row with two numbers, N and N, telling you the
+        dimensions of the well. Then you'll be given N rows of N colums of
+        unique numbers. Then you'll get one row with one number, M, telling
+        you the target square to cover with one cubic unit of water.
         """
         self.squares = [int(v) for v in re.split('[ \n\r]+', args.strip())]
         (self.cols, self.rows, self.target) = (self.squares.pop(0), self.squares.pop(0), self.squares.index(self.squares.pop()))
 
     def get_neighbours(self, cols, rows):
-        """Assuming realistic model, water can only flow through sides of squares, not diagonals.
+        """Assuming realistic model, water can only flow through sides of
+        squares, not diagonals.
         """
         neighbours = []
         cardinals = [(-1, 0), (0, -1), (1, 0), (0, 1)] # N/W/S/E
@@ -42,7 +56,9 @@ class Well:
         return neighbours
 
     def fill(self, square, min_square, visited):
-        """Check neighbours that are not higher than the current square. Return deepest square reached.
+        """Check neighbours that are not higher than the current square. 
+        
+        Return deepest square reached.
         """
         visited.add(square)
 
@@ -53,7 +69,10 @@ class Well:
         return square if self.squares[square] < self.squares[min_square] else min_square
 
     def solve(self):
-        """Keep adding one unit of water to square 1 until the target square is incremented and there are no other squares to fill at that depth. In real life the squares will fill proportionally, but our model matches it at this iteration point.
+        """Keep adding one unit of water to square 1 until the target square
+        is incremented and there are no other squares to fill at that depth.
+        In real life the squares will fill proportionally, but our model
+        matches it at this iteration point.
         """
         target_level = self.squares[self.target] + 1
 
