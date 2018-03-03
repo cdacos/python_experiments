@@ -48,11 +48,11 @@ class Well:
         squares, not diagonals.
         """
         neighbours = []
-        cardinals = [(-1, 0), (0, -1), (1, 0), (0, 1)] # N/W/S/E
+        cardinals = [(0, -1), (-1, 0), (0, 1), (1, 0)] # N/W/S/E
         for i in range(0, cols*rows):
-            (r, c) = (int(i / rows), i % cols)
-            coords = [(p[0] + r, p[1] + c) for p in cardinals] # Some might be out of bounds, so filter:
-            neighbours.append([n[0] * cols + n[1] for n in coords if 0 <= n[0] < rows and 0 <= n[1] < cols])
+            (x, y) = (i % cols, int(i / rows))
+            coords = [(p[0] + x, p[1] + y) for p in cardinals] # Some might be out of bounds, so filter:
+            neighbours.append([n[0] + n[1] * cols for n in coords if 0 <= n[0] < cols and 0 <= n[1] < rows])
         return neighbours
 
     def fill(self, square, min_square, visited):
