@@ -19,7 +19,6 @@ class Well:
         self.rows = 0
         self.squares = []
         self.target = 0 # The target square "M"
-        self.visited = set()
         self.time = 0
         self.parse_input(args)
         # Calculate this initially to avoid repetition:
@@ -42,25 +41,24 @@ class Well:
             neighbours.append([n[0] * cols + n[1] for n in coords if 0 <= n[0] < rows and 0 <= n[1] < cols])
         return neighbours
 
-    def fill(self, square = 0, min_square = 0):
+    def fill(self, square, min_square, visited):
         """Check neighbours that are not higher than the current square. Return deepest square reached.
         """
-        self.visited.add(square)
+        visited.add(square)
 
         for n in self.neighbours[square]:
-            if self.squares[n] <= self.squares[square] and n not in self.visited:
-                min_square = self.fill(n, min_square)
+            if self.squares[n] <= self.squares[square] and n not in visited:
+                min_square = self.fill(n, min_square, visited)
 
         return square if self.squares[square] < self.squares[min_square] else min_square
 
     def solve(self):
-        """Keep adding one unit of water until the target square is incremented and there are no other squares to fill at that depth. In real life the squares will fill proportionally, but our model matches reality at this point.
+        """Keep adding one unit of water to square 1 until the target square is incremented and there are no other squares to fill at that depth. In real life the squares will fill proportionally, but our model matches it at this iteration point.
         """
         target_level = self.squares[self.target] + 1
 
-        for self.time in range(0, 999_999): # Avoid infinite loops
-            self.visited = set()
-            square = self.fill()
+        for self.time in range(0, 999_999): # Avoid infinite loop
+            square = self.fill(0, 0, set())
             if self.squares[square] + 1 > target_level and self.squares[self.target] >= target_level:
                 return self.time # Done!
             self.squares[square] = self.squares[square] + 1
