@@ -35,47 +35,44 @@ class Well:
                     self.target = self.squares.index(int(line))
 
     def get_neighbours(self, cols, rows):
-        neighbours = []
+        neighbours = [] # Cardinal points: N/E/S/W
         for i in range(0, cols*rows):
             (row, col) = ((int)(i / rows), i % cols)
             n = set()
-            for r in range(row-1, row+2):
-                for c in range(col-1, col+2):
-                    if c >= 0 and c < cols and r >= 0 and r < rows and not (c == col and r == row):
-                        n.add(r * cols + c)
+            if row > 0:
+                n.add((row - 1) * cols + col)
+            if row < rows - 1:
+                n.add((row + 1) * cols + col)
+            if col > 0:
+                n.add(row * cols + col - 1)
+            if col < cols - 1:
+                n.add(row * cols + col + 1)
             neighbours.append(n)
         return neighbours
 
-    def fill(self, square, square_min):
+    def fill(self, square = 0, min_square = 0, last_square = 0):
         self.visited.add(square)
 
-        if square == self.target or self.squares[square] > self.squares[square_min]:
-            return square_min # Too high / our target block - abort
+        if self.squares[square] > self.squares[last_square]:
+            return min_square # Square too high, barrier
 
-        if self.squares[square] < self.squares[square_min]:
-            return square # Deep enough, stop looking
-        
         for n in self.neighbours[square]:
             if n not in self.visited:
-                square_min = self.fill(n, square_min)
+                min_square = self.fill(n, min_square, square)
 
-        if square == 0 and self.target in self.visited and self.squares[self.target] < self.squares[square_min]:
-            return self.target # Only target is left - we're done
-
-        return square_min
+        return square if self.squares[square] < self.squares[min_square] else min_square
 
     def solve(self):
         self.neighbours = self.get_neighbours(self.cols, self.rows)
-        i = 0
-        while(True):
+        self.debug = False
+        target_level = self.squares[self.target] + 1
+        for i in range(1, 9999): # Avoid infinite loops
             self.visited = set()
-            square = self.fill(0, 0)
+            square = self.fill()
+            if self.squares[square] + 1 > target_level and self.squares[self.target] >= target_level:
+                return i - 1 # Reached the target level on the last iteration
             self.squares[square] = self.squares[square] + 1
-            i = i + 1
-            if square == self.target:
-                return i
-            if i > 9999:
-                raise Exception('Iteration limit {} exceeded'.format(i))
+        raise Exception('Iteration limit exceeded')
 
 well1 = Well("""
 3 3
@@ -116,17 +113,14 @@ print('Well 3 = {}'.format(well3.solve()))
 # ----------------------------------------------------------------------------
 
 def print_squares(well):
-    print('\nTarget: {} (position: {})'.format(well.squares[well.target] - 1, well.target))
+    print('\nTarget: {} (position: {})'.format(well.squares[well.target], well.target))
     for r in range(0, well.rows):
         row = []
         for c in range(0, well.cols):
             i = r * well.cols + c
-            if i == well.target:
-                row.append('!!')
-            else:
-                row.append('{}  '.format(well.squares[i])[0:2])
-        print(row)
+            row.append('{}{}  '.format(well.squares[i], '!' if i == well.target else '')[0:3])
+        print(' '.join(row))
 
-# print_squares(well1)
-# print_squares(well2)
-# print_squares(well3)
+print_squares(well1)
+print_squares(well2)
+print_squares(well3)
