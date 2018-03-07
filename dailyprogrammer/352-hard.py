@@ -24,7 +24,7 @@ class Well:
     well's target square is under a cubic unit of water? 
     """
 
-    def __init__(self, args):
+    def __init__(self, args: str):
         self.cols = 0
         self.rows = 0
         self.squares = []
@@ -32,7 +32,7 @@ class Well:
         self.time = 0
         self.parse_input(args)
 
-    def parse_input(self, args):
+    def parse_input(self, args: str):
         """You'll be given a row with two numbers, N and N, telling you the
         dimensions of the well. Then you'll be given N rows of N colums of
         unique numbers. Then you'll get one row with one number, M, telling
@@ -41,7 +41,7 @@ class Well:
         self.squares = [int(v) for v in re.split('[ \n\r]+', args.strip())]
         self.cols, self.rows, self.target = self.squares.pop(0), self.squares.pop(0), self.squares.index(self.squares.pop())
 
-    def get_neighbours(self, square):
+    def get_neighbours(self, square: int) -> [int]:
         """Assuming realistic model, water can only flow through sides of
         squares, not diagonals.
         """
@@ -49,7 +49,7 @@ class Well:
         neighbours = [(p[0] + x, p[1] + y) for p in [(0, -1), (-1, 0), (0, 1), (1, 0)]] 
         return [n[0] + n[1] * self.cols for n in neighbours if 0 <= n[0] < self.cols and 0 <= n[1] < self.rows]
 
-    def fill(self, square, min_square, visited):
+    def fill(self, square: int, min_square: int, visited: set) -> int:
         """Check neighbours that are not higher than the current square. 
         Return deepest square reached.
         """
@@ -61,7 +61,7 @@ class Well:
 
         return square if self.squares[square] < self.squares[min_square] else min_square
 
-    def solve(self):
+    def solve(self) -> int:
         """Keep adding one unit of water to square 1 until the target square
         is incremented and there are no other squares to fill at that depth.
         In real life the squares will fill proportionally, but our model
