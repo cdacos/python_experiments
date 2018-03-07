@@ -31,8 +31,6 @@ class Well:
         self.target = 0 # The target square "M"
         self.time = 0
         self.parse_input(args)
-        # Calculate this initially to avoid repetitive work:
-        self.neighbours = self.get_neighbours(self.cols, self.rows)
 
     def parse_input(self, args):
         """You'll be given a row with two numbers, N and N, telling you the
@@ -41,19 +39,15 @@ class Well:
         you the target square to cover with one cubic unit of water.
         """
         self.squares = [int(v) for v in re.split('[ \n\r]+', args.strip())]
-        (self.cols, self.rows, self.target) = (self.squares.pop(0), self.squares.pop(0), self.squares.index(self.squares.pop()))
+        self.cols, self.rows, self.target = self.squares.pop(0), self.squares.pop(0), self.squares.index(self.squares.pop())
 
-    def get_neighbours(self, cols, rows):
+    def get_neighbours(self, square):
         """Assuming realistic model, water can only flow through sides of
         squares, not diagonals.
         """
-        neighbours = []
-        cardinals = [(0, -1), (-1, 0), (0, 1), (1, 0)] # N/W/S/E
-        for i in range(0, cols*rows):
-            (x, y) = (i % cols, int(i / rows))
-            coords = [(p[0] + x, p[1] + y) for p in cardinals] # Some might be out of bounds, so filter:
-            neighbours.append([n[0] + n[1] * cols for n in coords if 0 <= n[0] < cols and 0 <= n[1] < rows])
-        return neighbours
+        x, y = square % self.cols, square // self.rows
+        neighbours = [(p[0] + x, p[1] + y) for p in [(0, -1), (-1, 0), (0, 1), (1, 0)]] 
+        return [n[0] + n[1] * self.cols for n in neighbours if 0 <= n[0] < self.cols and 0 <= n[1] < self.rows]
 
     def fill(self, square, min_square, visited):
         """Check neighbours that are not higher than the current square. 
@@ -61,7 +55,7 @@ class Well:
         """
         visited.add(square)
 
-        for n in self.neighbours[square]:
+        for n in self.get_neighbours(square):
             if self.squares[n] <= self.squares[square] and n not in visited:
                 min_square = self.fill(n, min_square, visited)
 
@@ -74,11 +68,14 @@ class Well:
         matches it at this iteration point.
         Return number of iterations ('time').
         """
+        if self.time > 0: # Once solved, no need to solve again
+            return self.time
+
         target_level = self.squares[self.target] + 1
 
         for self.time in range(0, 999_999): # Avoid infinite loop
             square = self.fill(0, 0, set())
-            if self.squares[square] + 1 > target_level and self.squares[self.target] >= target_level:
+            if self.squares[square] + 1 > target_level and self.squares[self.target] == target_level:
                 return self.time # Done!
             self.squares[square] += 1
 
@@ -90,7 +87,7 @@ well_1 = Well("""
 2 8 5
 3 7 4
 4
-""") # 16
+""")
 
 well_2 = Well("""
 7 7
@@ -102,7 +99,7 @@ well_2 = Well("""
   43  29   4  41  26  31  37
   25   6  23  44   7  42  40
 35
-""") # 589 
+""")
 
 well_3 = Well("""
 7 7
@@ -114,7 +111,7 @@ well_3 = Well("""
   40  41  20  26  39  48   2
   49  35  27   4  37  30  17
 26
-""") # 316
+""")
 
 print('Well 1 = {}'.format(well_1.solve()))
 assert(well_1.time == 16)
