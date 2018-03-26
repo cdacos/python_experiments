@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import re
+
 
 class Well:
     """See https://www.reddit.com/r/dailyprogrammer/
@@ -10,7 +12,7 @@ class Well:
     A square well is dug with a peculiar shape: each 1x1 section has varying
     heights above some floor. You wish to fill the well with water, filling
     from a hose above the square marked 1. Square 1 is the lowest (think of 
-    this as a heightmap in units from the bottom). Water flows at 1 cubic 
+    this as a height-map in units from the bottom). Water flows at 1 cubic
     unit per unit time (e.g. 1 liter per minute if you want specific units).
     You wish to know when you fill a specific square.
 
@@ -28,18 +30,19 @@ class Well:
         self.cols = 0
         self.rows = 0
         self.squares = []
-        self.target = 0 # The target square "M"
+        self.target = 0  # The target square "M"
         self.time = 0
         self.parse_input(args)
 
     def parse_input(self, args: str):
         """You'll be given a row with two numbers, N and N, telling you the
-        dimensions of the well. Then you'll be given N rows of N colums of
+        dimensions of the well. Then you'll be given N rows of N columns of
         unique numbers. Then you'll get one row with one number, M, telling
         you the target square to cover with one cubic unit of water.
         """
         self.squares = [int(v) for v in re.split('[ \n\r]+', args.strip())]
-        self.cols, self.rows, self.target = self.squares.pop(0), self.squares.pop(0), self.squares.index(self.squares.pop())
+        self.cols, self.rows = self.squares.pop(0), self.squares.pop(0)
+        self.target = self.squares.index(self.squares.pop())
 
     def get_neighbours(self, square: int) -> [int]:
         """Assuming realistic model, water can only flow through sides of
@@ -68,18 +71,19 @@ class Well:
         matches it at this iteration point.
         Return number of iterations ('time').
         """
-        if self.time > 0: # Once solved, no need to solve again
+        if self.time > 0:  # Once solved, no need to solve again
             return self.time
 
         target_level = self.squares[self.target] + 1
 
-        for self.time in range(0, 999_999): # Avoid infinite loop
+        for self.time in range(0, 999_999):  # Avoid infinite loop
             square = self.fill(0, 0, set())
             if self.squares[square] + 1 > target_level and self.squares[self.target] == target_level:
-                return self.time # Done!
+                return self.time  # Done!
             self.squares[square] += 1
 
         raise Exception('Iteration limit exceeded')
+
 
 well_1 = Well("""
 3 3
@@ -121,6 +125,7 @@ print('Well 3 = {}'.format(well_3.solve()))
 assert(well_3.time == 316)
 
 # ----------------------------------------------------------------------------
+
 
 def print_squares(well):
     """Pretty print a well.
